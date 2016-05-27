@@ -52,5 +52,9 @@ $deployResourcesScriptPath = [System.IO.Path]::Combine($PSScriptRoot, $deployRes
     -StorageAccountName $deployStgAcctName `
     -ArtifactStagingDirectory $artifactStagingDir
 
-
-
+# If running in the console (not the ISE), wait for input before closing.
+if ($Host.Name -eq "ConsoleHost")
+{
+    Write-Host "Press any key to continue..."
+    $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyUp") > $null
+}
