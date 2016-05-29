@@ -1,15 +1,13 @@
 #Traffic Manager
-***
 
 This guide demonstrates how to use Azure Traffic Manager to globally scale a web app.  In this demonstration you will show how to
 
 * Create a Traffic Manager profile using the Weighted (round-robin) routing method
 * Configure endpoints for the profile
-* Observe how Traffic Manager resolves DNS names when you stop and start web apps
+* Observe how Traffic Manager resolves DNS names when you stop and start endpoints in the Traffic Manager profile
 * Configure Traffic Manager profile settings
 
 ##Pre-requisites
-***
 
 This demonstration requires the following:
 
@@ -19,7 +17,6 @@ This demonstration requires the following:
  * ` Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Force `
 
 ##Setup
-***
 
 _Estimated Time: 5 minutes_
 
@@ -34,7 +31,6 @@ _Estimated Time: 5 minutes_
 4. Authenticate to your Azure subscription using your Azure credentials.
 
 ##Demo Steps
-***
 _Estimated Time: 15 minutes_
 
 1. Sign-in to the Azure portal.
@@ -158,14 +154,13 @@ _Estimated Time: 15 minutes_
 
 
 ##Cleanup
-***
 _Estimated Time: 5 minutes_
 
 1. Open Windows Explorer and navigate to the **Networking/Demo-TrafficManager** folder.
 
 2. Right-click on **Cleanup-Demo.ps1** and select **Run with PowerShell**.  _Note: You can run the script from the PowerShell ISE if you prefer. Either way will work the same._
 
-3. The script requires one parameter which is your Azure Subscription ID.  _Note: If you changed the resource group name when you ran the Deploy-Demo script during setup, then make sure you supply the new resource group name you used.  Otherwise, the default resource group name is assumed._     
+    The script requires one parameter which is your Azure Subscription ID.  _Note: If you changed the resource group name when you ran the Deploy-Demo script during setup, then make sure you supply the new resource group name you used.  Otherwise, the default resource group name is assumed._     
 
 
 
