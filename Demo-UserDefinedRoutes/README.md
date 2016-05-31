@@ -57,7 +57,71 @@ _Estimated Time: 25 minutes (mostly waiting for the ARM template tp deploy)_
 ##Demo Steps
 _Estimated Time: ?? minutes_
 
-// TODO
+1. Sign-in to the Azure portal.
+
+2. Open the **UDR-Demo** resource group blade.
+
+3. Identify the resources in the resource group that make up the demo.  At a high level, what you are going to show is that traffic from **vm-0** that is addressed to **vm-2** will pass through **vm-1** (the virtual appliance).
+
+    a. The 3 virtual machines.
+
+    b. The 3 virtual NIC's that bind each of the virtual machines to the virtual network.
+
+    c. The 3 public IP addresses which are there only so we can RDP into the VM's
+
+    d. The virtual network.
+
+    e. The user defined route / route-table.
+
+4. Click on the virtual network resource and show 3 NIC's that bind the VM's to the different subnets.  Explain that these are the internal IP addresses assigned to the NIC's and therefore the virtual machine they are bound to.
+
+    <img src="./media/demo-01.png" style="max-width: 500px" />
+
+5. Go the **Subnets** blade and show that the FrontendSubnet has a route table assigned to it.  The other two subnets do not.
+ 
+    <img src="./media/demo-02.png" style="max-width: 500px" />
+
+6. Open the **Route table** blade.  Show how traffic from VM's in the FrontendSubnet to VM's in the BackendSubnet is routed through the VM Appliance at 10.1.1.4. 
+
+    <img src="./media/demo-03.png" style="max-width: 500px" />
+
+7. Click on the virtual appliance route in the Routes tile.
+
+8. In the **Edit route** blade, show where the **Next hop type** is set to **Virtual Appliance**.  Explain the other options in the Next hop type dropdown ([details here](herehttps://azure.microsoft.com/en-us/documentation/articles/virtual-networks-udr-overview)).
+
+9. Open the RDP connection to **vm-1** (the VM Appliance).
+
+10.	Double-click on the **Wireshark** icon on the desktop.
+
+    a. Double-click on the Ethernet graph.
+
+    <img src="./media/demo-04.png" style="max-width: 500px" />
+
+    b. In the filter field under the toolbar, set the filter to **ip.addr==10.1.2.4** (vm-2).  Explain that what we're doing is listening for any traffic that is addressed to and from vm-2 that is in the BackendSubnet.
+
+    <img src="./media/demo-05.png" style="max-width: 500px" />
+
+11. Open the RDP connection to **vm-0**.
+
+    a. Open a Command prompt window.
+
+    b. Type tracert 10.1.2.4 and press ENTER.  Point out that the trace to 10.1.2.4 (vm-2) passed through 10.1.1.4 (vm-1 / the VM Appliance).
+
+    <img src="./media/demo-06.png" style="max-width: 500px" />
+
+12. Open the RDP connection to **vm-1**.  Show that this VM (the VM Appliance) is receiving the traffic between 10.1.0.4 (vm-0) and 10.1.2.4 (vm-2).
+
+    <img src="./media/demo-07.png" style="max-width: 500px" />
+
+13. Wrap up the demo explaining that for this to work this virtual machine (vm-1) had to have **ipForwarding** enabled and have the **Routing and Remote Access feature installed and configured for Lan Routing**.
+
+    The **ipForwarding** is enabled on the NIC for vm-1.  You can see this in the ARM deployment template.
+
+    <img src="./media/demo-08.png" style="max-width: 500px" />
+
+    The Routing and Remote Access installation and configuration is applied via Desired State Configuration (DSC).  See vm-1extenstionConfiguration.ps1 in the solution source code.
+
+    <img src="./media/demo-09.png" style="max-width: 500px" />
 
 ##Cleanup
 _Estimated Time: 5 minutes_
