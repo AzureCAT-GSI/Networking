@@ -1,0 +1,299 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "_artifactsLocation": {
+      "type": "string",
+      "metadata": {
+        "description": "Auto-generated container in staging storage account to receive post-build staging folder upload"
+      }
+    },
+    "_artifactsLocationSasToken": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Auto-generated token to access _artifactsLocation"
+      }
+    }
+  },
+  "variables": {
+    "newStorageAccountName": "[concat('vmstg', uniqueString(resourceGroup().id))]",
+    "imagePublisher": "MicrosoftWindowsServer",
+    "imageOffer": "WindowsServer",
+    "windowsOSVersion": "2012-R2-Datacenter",
+    "OSDiskName": "osdiskforwindowssimple",
+    "storageAccountType": "Standard_LRS",
+    "vmStorageAccountContainerName": "vhds",
+    "vmSize": "Standard_A2",
+    "adminUsername": "adminuser",
+    "adminPassword": "P@ssword1",
+    "vmNamePrefix": "vm",
+    "uniqueDnsPrefixForVM": "[concat('udr-vm-', uniqueString(resourceGroup().id), '-')]",
+    "VNetName": "UDR_Demo_Network",
+    "Subnet1Name": "FrontendSubnet",
+    "Subnet2Name": "NVASubnet",
+    "Subnet3Name": "BackendSubnet",
+    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('VNetName'))]",
+    "subnetRef": [
+      "[concat(variables('vnetID'),'/subnets/', variables('Subnet1Name'))]",
+      "[concat(variables('vnetID'),'/subnets/', variables('Subnet2Name'))]",
+      "[concat(variables('vnetID'),'/subnets/', variables('Subnet3Name'))]"
+    ],
+    "VNetAddressPrefix": "10.1.0.0/16",
+    "Subnet1Prefix": "10.1.0.0/24",
+    "Subnet2Prefix": "10.1.1.0/24",
+    "Subnet3Prefix": "10.1.2.0/24",
+    "ipForwarding": [ false, true, false ],
+
+    "routeTableName": "BasicNVA-RT",
+    "NvmPrivateIPAddress": "10.1.1.4",
+    "scaleNumber": 3,
+    "vm1-extensionConfigurationFunction": "vm1-extensionConfiguration.ps1\\Main",
+    "vm2-extensionConfigurationFunction": "vm2-extensionConfiguration.ps1\\Main",
+    "vm0-extensionConfigurationFunction": "vm0-extensionConfiguration.ps1\\Main"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('newStorageAccountName')]",
+      "apiVersion": "2015-05-01-preview",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "accountType": "[variables('storageAccountType')]"
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[concat(variables('uniqueDnsPrefixForVM'), copyIndex())]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "pubIPLoop",
+        "count": "[variables('scaleNumber')]"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[concat(variables('uniqueDnsPrefixForVM'), copyIndex())]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Network/routeTables",
+      "name": "[variables('routeTableName')]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "routes": [
+          {
+            "name": "VirtualApplianceRouteToSubnet3",
+            "properties": {
+              "addressPrefix": "[variables('subnet3Prefix')]",
+              "nextHopType": "VirtualAppliance",
+              "nextHopIpAddress": "[variables('NvmPrivateIPAddress')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('VNetName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/routeTables/', variables('routeTableName'))]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('VNetAddressPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('Subnet1Name')]",
+            "properties": {
+              "addressPrefix": "[variables('Subnet1Prefix')]",
+              "routeTable": {
+                "id": "[resourceId('Microsoft.Network/routeTables', variables('routeTableName'))]"
+              }
+            }
+          },
+          {
+            "name": "[variables('Subnet2Name')]",
+            "properties": {
+              "addressPrefix": "[variables('Subnet2Prefix')]"
+            }
+          },
+          {
+            "name": "[variables('Subnet3Name')]",
+            "properties": {
+              "addressPrefix": "[variables('Subnet3Prefix')]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat('nic-', copyIndex())]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworks/', variables('VNetName'))]",
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('uniqueDnsPrefixForVM'), copyIndex())]"
+      ],
+      "copy": {
+        "name": "nicLoop",
+        "count": "[variables('scaleNumber')]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('uniqueDnsPrefixForVM'), copyIndex()))]"
+              },
+              "subnet": {
+                "id": "[variables('subnetRef')[copyIndex()]]"
+              }
+            }
+          }
+        ],
+        "enableIPForwarding": "[variables('ipForwarding')[copyIndex()]]"
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(variables('vmNamePrefix'), '-', copyIndex())]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "vmLoop",
+        "count": "[variables('scaleNumber')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('newStorageAccountName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/nic-0')]",
+        "[concat('Microsoft.Network/networkInterfaces/nic-1')]",
+        "[concat('Microsoft.Network/networkInterfaces/nic-2')]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSize')]"
+        },
+        "osProfile": {
+          "computername": "[concat(variables('vmNamePrefix'), '-', copyIndex())]",
+          "adminUsername": "[variables('adminUsername')]",
+          "adminPassword": "[variables('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('imagePublisher')]",
+            "offer": "[variables('imageOffer')]",
+            "sku": "[variables('windowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "osdisk",
+            "vhd": {
+              "uri": "[concat('http://',variables('newStorageAccountName'),'.blob.core.windows.net/vhds/', 'osdisk', copyIndex(), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('nic-', copyIndex()))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "vm-1/vm1-dsc-extension",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), '-1'))]"
+      ],
+      "tags": {
+        "displayName": "vm1-dsc-extension"
+      },
+      "properties": {
+        "publisher": "Microsoft.Powershell",
+        "type": "DSC",
+        "typeHandlerVersion": "2.9",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "modulesUrl": "[concat(parameters('_artifactsLocation'), '/', 'dsc.zip')]",
+          "sasToken": "[parameters('_artifactsLocationSasToken')]",
+          "configurationFunction": "[variables('vm1-extensionConfigurationFunction')]",
+          "properties": {
+            "nodeName": "[concat(variables('vmNamePrefix'), '-1')]"
+          }
+        },
+        "protectedSettings": { }
+      }
+    },
+    {
+      "name": "vm-2/vm2-dsc-extension",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), '-2'))]"
+      ],
+      "tags": {
+        "displayName": "vm2-dsc-extension"
+      },
+      "properties": {
+        "publisher": "Microsoft.Powershell",
+        "type": "DSC",
+        "typeHandlerVersion": "2.9",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "modulesUrl": "[concat(parameters('_artifactsLocation'), '/', 'dsc.zip')]",
+          "sasToken": "[parameters('_artifactsLocationSasToken')]",
+          "configurationFunction": "[variables('vm2-extensionConfigurationFunction')]",
+          "properties": {
+            "nodeName": "[concat(variables('vmNamePrefix'), '-2')]"
+          }
+        },
+        "protectedSettings": { }
+      }
+    },
+    {
+      "name": "vm-0/vm0-dsc-extension",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', concat(variables('vmNamePrefix'), '-0'))]"
+      ],
+      "tags": {
+        "displayName": "vm0-dsc-extension"
+      },
+      "properties": {
+        "publisher": "Microsoft.Powershell",
+        "type": "DSC",
+        "typeHandlerVersion": "2.9",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "modulesUrl": "[concat(parameters('_artifactsLocation'), '/', 'dsc.zip')]",
+          "sasToken": "[parameters('_artifactsLocationSasToken')]",
+          "configurationFunction": "[variables('vm0-extensionConfigurationFunction')]",
+          "properties": {
+            "nodeName": "[concat(variables('vmNamePrefix'), '-0')]"
+          }
+        },
+        "protectedSettings": { }
+      }
+    }
+  ]
+}
