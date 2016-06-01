@@ -1,0 +1,147 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "_artifactsLocation": {
+      "type": "string"
+    },
+    "_artifactsLocationSasToken": {
+      "type": "securestring"
+    },
+    "WebDeploy-PackageFolder": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "WebDeploy package location. This path is relative to the _artifactsLocation parameter"
+      }
+    },
+    "WebDeploy-PackageFileName": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Name of the webdeploy package"
+      }
+    }
+
+  },
+  "variables": {
+    "AppServicePlan-WestName": "AppServicePlan-West-S1",
+    "AppServicePlan-EastName": "AppServicePlan-East-S1",
+    "WebApp-WestName": "[concat('WebApp-West-', uniqueString(resourceGroup().id))]",
+    "WebApp-EastName": "[concat('WebApp-East-', uniqueString(resourceGroup().id))]",
+    "App-Service-Plan-WorkerSize": "0",
+    "App-Service-Plan-SKU": "Standard"
+  },
+  "resources": [
+    {
+      "name": "[variables('AppServicePlan-WestName')]",
+      "type": "Microsoft.Web/serverfarms",
+      "location": "West US",
+      "apiVersion": "2014-06-01",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "App-Service-Plan-West-S1"
+      },
+      "properties": {
+        "name": "[variables('AppServicePlan-WestName')]",
+        "sku": "[variables('App-Service-Plan-SKU')]",
+        "workerSize": "[variables('App-Service-Plan-WorkerSize')]",
+        "numberOfWorkers": 1
+      }
+    },
+    {
+      "name": "[variables('WebApp-WestName')]",
+      "type": "Microsoft.Web/sites",
+      "location": "West US",
+      "apiVersion": "2015-08-01",
+      "dependsOn": [
+        "[concat('Microsoft.Web/serverfarms/', variables('AppServicePlan-WestName'))]"
+      ],
+      "tags": {
+        "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', variables('AppServicePlan-WestName'))]": "Resource",
+        "displayName": "WebApp-West"
+      },
+      "properties": {
+        "name": "[variables('WebApp-WestName')]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms/', variables('AppServicePlan-WestName'))]"
+      },
+      "resources": [
+        {
+          "name": "MSDeploy",
+          "type": "extensions",
+          "location": "West US",
+          "apiVersion": "2015-08-01",
+          "dependsOn": [
+            "[concat('Microsoft.Web/sites/', variables('WebApp-WestName'))]"
+          ],
+          "tags": {
+            "displayName": "WebDeploy-West"
+          },
+          "properties": {
+            "packageUri": "[concat(parameters('_artifactsLocation'), '/', parameters('WebDeploy-PackageFolder'), '/', parameters('WebDeploy-PackageFileName'), parameters('_artifactsLocationSasToken'))]",
+            "dbType": "None",
+            "connectionString": "",
+            "setParameters": {
+              "IIS Web Application Name": "[variables('WebApp-WestName')]"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "[variables('AppServicePlan-EastName')]",
+      "type": "Microsoft.Web/serverfarms",
+      "location": "East US",
+      "apiVersion": "2014-06-01",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "App-Service-Plan-East-S1"
+      },
+      "properties": {
+        "name": "[variables('AppServicePlan-EastName')]",
+        "sku": "[variables('App-Service-Plan-SKU')]",
+        "workerSize": "[variables('App-Service-Plan-WorkerSize')]",
+        "numberOfWorkers": 1
+      }
+    },
+    {
+      "name": "[variables('WebApp-EastName')]",
+      "type": "Microsoft.Web/sites",
+      "location": "East US",
+      "apiVersion": "2015-08-01",
+      "dependsOn": [
+        "[concat('Microsoft.Web/serverfarms/', variables('AppServicePlan-EastName'))]"
+      ],
+      "tags": {
+        "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', variables('AppServicePlan-EastName'))]": "Resource",
+        "displayName": "WebApp-East"
+      },
+      "properties": {
+        "name": "[variables('WebApp-EastName')]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms/', variables('AppServicePlan-EastName'))]"
+      },
+      "resources": [
+        {
+          "name": "MSDeploy",
+          "type": "extensions",
+          "location": "East US",
+          "apiVersion": "2015-08-01",
+          "dependsOn": [
+            "[concat('Microsoft.Web/sites/', variables('WebApp-EastName'))]"
+          ],
+          "tags": {
+            "displayName": "WebDeploy-East"
+          },
+          "properties": {
+            "packageUri": "[concat(parameters('_artifactsLocation'), '/', parameters('WebDeploy-PackageFolder'), '/', parameters('WebDeploy-PackageFileName'), parameters('_artifactsLocationSasToken'))]",
+            "dbType": "None",
+            "connectionString": "",
+            "setParameters": {
+              "IIS Web Application Name": "[variables('WebApp-EastName')]"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

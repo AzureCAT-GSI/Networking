@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|AnyCPU">
+      <Configuration>Debug</Configuration>
+      <Platform>AnyCPU</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|AnyCPU">
+      <Configuration>Release</Configuration>
+      <Platform>AnyCPU</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>a5e355b1-712b-4cd2-ab26-528b0d73c08b</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetFrameworkIdentifier>Deployment</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>1.0</TargetFrameworkVersion>
+    <PrepareForBuildDependsOn>
+    </PrepareForBuildDependsOn>
+  </PropertyGroup>
+  <Import Condition=" Exists('Deployment.targets') " Project="Deployment.targets" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />
+  <!-- vertag<:>start tokens<:>maj.min -->
+  <Import Condition=" Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Deployment\1.1\DeploymentProject.targets') " Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Deployment\1.1\DeploymentProject.targets" />
+  <!-- vertag<:>end -->
+  <ItemGroup>
+    <Folder Include="Scripts\" />
+    <Folder Include="Templates\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Deployment.targets">
+      <Visible>False</Visible>
+    </None>
+    <Content Include="Scripts\Deploy-AzureResourceGroup.ps1" />
+    <Content Include="Templates\azuredeploy.json" />
+    <Content Include="Templates\azuredeploy.parameters.json" />
+    <None Include="DSC\vm0-extensionConfiguration.ps1" />
+    <None Include="DSC\vm1-extensionConfiguration.ps1" />
+    <None Include="DSC\vm2-extensionConfiguration.ps1" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xDefaultGatewayAddress\MSFT_xDefaultGatewayAddress.psm1" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xDefaultGatewayAddress\MSFT_xDefaultGatewayAddress.schema.mof" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xDhcpClient\MSFT_xDhcpClient.psm1" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xDhcpClient\MSFT_xDhcpClient.schema.mof" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xDnsConnectionSuffix\MSFT_xDnsConnectionSuffix.psm1" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xDnsConnectionSuffix\MSFT_xDnsConnectionSuffix.schema.mof" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xDNSServerAddress\MSFT_xDNSServerAddress.psm1" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xDNSServerAddress\MSFT_xDNSServerAddress.schema.mof" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xFirewall\MSFT_xFirewall.psm1" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xFirewall\MSFT_xFirewall.Schema.mof" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xIPAddress\MSFT_xIPAddress.psm1" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xIPAddress\MSFT_xIPAddress.schema.mof" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xNetBIOS\en-US\MSFT_xNetBIOS.psd1" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xNetBIOS\MSFT_xNetBIOS.psm1" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xNetBIOS\MSFT_xNetBIOS.schema.mof" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xNetConnectionProfile\MSFT_xNetConnectionProfile.psm1" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xNetConnectionProfile\MSFT_xNetConnectionProfile.schema.mof" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xNetworkTeam\en-US\MSFT_xNetworkTeam.psd1" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xNetworkTeam\MSFT_xNetworkTeam.psm1" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xNetworkTeam\MSFT_xNetworkTeam.schema.mof" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xRoute\MSFT_xRoute.psm1" />
+    <None Include="DSC\xNetworking\2.7.0.0\DSCResources\MSFT_xRoute\MSFT_xRoute.schema.mof" />
+    <None Include="DSC\xNetworking\2.7.0.0\xNetworking.psd1" />
+  </ItemGroup>
+  <Target Name="GetReferenceAssemblyPaths" />
+</Project>
