@@ -1,51 +1,45 @@
 ﻿{
-  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "location": {
-      "value": "North Europe"
-    },
     "virtualNetworkName": {
       "value": "nsgdemoVNet"
     },
-    "addressPrefix": {
-      "value": "10.0.0.0/16"
-    },
-    "FESubnetPrefix": {
-      "value": "10.0.0.0/24"
-    },
-    "AppSubnetPrefix": {
-      "value": "10.0.1.0/24"
-    },
-    "DBSubnetPrefix": {
-      "value": "10.0.2.0/24"
-    },
     "FENSGName": {
-      "value": "fensg"
+      "value": "fensg1"
     },
     "AppNSGName": {
-      "value": "appnsg"
+      "value": "appnsg1"
     },
     "DBNSGName": {
-      "value": "dbnsg"
+      "value": "dbnsg1"
     },
-      "fewinvmAdminUserName": {
-          "value": "adminuser"
+      "FENicName": {
+          "value": "FENic1"
       },
-      "fewinvmAdminPassword": {
-          "value": "P@ssword1"
+      "AppNicName": {
+          "value": "AppNic1"
       },
-      "appwinvmAdminUserName": {
-          "value": "adminuser"
+      "DBNicName": {
+          "value": "DBNic1"
       },
-      "appwinvmAdminPassword": {
-          "value": "P@ssword1"
+      "FEPublicIPDnsName": {
+          "value": "fepublicdns1"
       },
-      "dbwinvmAdminUserName": {
-          "value": "adminuser"
+      "AppPublicIPDnsName": {
+          "value": "apppublicdns1"
       },
-      "dbwinvmAdminPassword": {
-          "value": "P@ssword1"
+      "DBPublicIPDnsName": {
+          "value": "dbpublicdns1"
+      },
+      "fewinvmName": {
+          "value": "fewinvm1"
+      },
+      "appwinvmName": {
+          "value": "appwinvm1"
+      },
+      "dbwinvmName": {
+          "value": "dbwinvm1"
       }
   }
 }

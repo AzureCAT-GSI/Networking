@@ -113,22 +113,16 @@
     },
     "fewinvmAdminUserName": {
       "type": "string",
-      "defaultValue": "demouser",
+      "defaultValue": "adminuser",
       "minLength": 1
     },
     "fewinvmAdminPassword": {
       "type": "securestring",
-      "defaultValue": "demouser@123"
+      "defaultValue": "P@ssword1"
     },
     "fewinvmWindowsOSVersion": {
       "type": "string",
-      "defaultValue": "2012-R2-Datacenter",
-      "allowedValues": [
-        "2008-R2-SP1",
-        "2012-Datacenter",
-        "2012-R2-Datacenter",
-        "Windows-Server-Technical-Preview"
-      ]
+      "defaultValue": "2012-R2-Datacenter"
     },
     "appwinvmName": {
       "type": "string",
@@ -137,22 +131,16 @@
     },
     "appwinvmAdminUserName": {
       "type": "string",
-      "defaultValue": "demouser",
+      "defaultValue": "adminuser",
       "minLength": 1
     },
     "appwinvmAdminPassword": {
       "type": "securestring",
-      "defaultValue": "demouser@123"
+      "defaultValue": "P@ssword1"
     },
     "appwinvmWindowsOSVersion": {
       "type": "string",
-      "defaultValue": "2012-R2-Datacenter",
-      "allowedValues": [
-        "2008-R2-SP1",
-        "2012-Datacenter",
-        "2012-R2-Datacenter",
-        "Windows-Server-Technical-Preview"
-      ]
+      "defaultValue": "2012-R2-Datacenter"
     },
     "dbwinvmName": {
       "type": "string",
@@ -161,22 +149,16 @@
     },
     "dbwinvmAdminUserName": {
       "type": "string",
-      "defaultValue": "demouser",
+      "defaultValue": "adminuser",
       "minLength": 1
     },
     "dbwinvmAdminPassword": {
       "type": "securestring",
-      "defaultValue": "demouser@123"
+      "defaultValue": "P@ssword1"
     },
     "dbwinvmWindowsOSVersion": {
       "type": "string",
-      "defaultValue": "2012-R2-Datacenter",
-      "allowedValues": [
-        "2008-R2-SP1",
-        "2012-Datacenter",
-        "2012-R2-Datacenter",
-        "Windows-Server-Technical-Preview"
-      ]
+      "defaultValue": "2012-R2-Datacenter"
     }
   },
   "resources": [
@@ -670,47 +652,47 @@
       }
     }
   ],
-    "variables": {
-        "nsgdemostorageName": "[concat('nsgstg', uniqueString(resourceGroup().id))]",
-        "FENicVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-        "FENicSubnetRef": "[concat(variables('FENicVnetID'), '/subnets/', 'FESubnetName')]",
-        "AppNicVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-        "AppNicSubnetRef": "[concat(variables('AppNicVnetID'), '/subnets/', 'AppSubnetName')]",
-        "DBNicVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-        "DBNicSubnetRef": "[concat(variables('DBNicVnetID'), '/subnets/', 'DBSubnetName')]",
-        "FEWinVMImagePublisher": "MicrosoftWindowsServer",
-        "FEWinVMImageOffer": "WindowsServer",
-        "FEWinVMOSDiskName": "FEWinVMOSDisk",
-        "FEWinVMVmSize": "Standard_D1",
-        "FEWinVMVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-        "FEWinVMSubnetRef": "[concat(variables('FEWinVMVnetID'), '/subnets/', 'FESubnetName')]",
-        "FEWinVMStorageAccountContainerName": "vhds",
-        "FEPublicIPName": "FEPublicIP",
-        "AppPublicIPName": "AppPublicIP",
-        "DBPublicIPName": "DBPublicIP",
-        "fewinvmImagePublisher2": "MicrosoftWindowsServer",
-        "fewinvmImageOffer2": "WindowsServer",
-        "fewinvmOSDiskName2": "fewinvmOSDisk",
-        "fewinvmVmSize2": "Standard_D1",
-        "fewinvmVnetID2": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-        "fewinvmSubnetRef2": "[concat(variables('fewinvmVnetID2'), '/subnets/', 'FESubnetName')]",
-        "fewinvmStorageAccountContainerName2": "vhds",
-        "fewinvmNicName": "[concat(parameters('fewinvmName'), 'NetworkInterface')]",
-        "appwinvmImagePublisher": "MicrosoftWindowsServer",
-        "appwinvmImageOffer": "WindowsServer",
-        "appwinvmOSDiskName": "appwinvmOSDisk",
-        "appwinvmVmSize": "Standard_D1",
-        "appwinvmVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-        "appwinvmSubnetRef": "[concat(variables('appwinvmVnetID'), '/subnets/', 'AppSubnetName')]",
-        "appwinvmStorageAccountContainerName": "vhds",
-        "appwinvmNicName": "[concat(parameters('appwinvmName'), 'NetworkInterface')]",
-        "dbwinvmImagePublisher": "MicrosoftWindowsServer",
-        "dbwinvmImageOffer": "WindowsServer",
-        "dbwinvmOSDiskName": "dbwinvmOSDisk",
-        "dbwinvmVmSize": "Standard_D1",
-        "dbwinvmVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-        "dbwinvmSubnetRef": "[concat(variables('dbwinvmVnetID'), '/subnets/', 'DBSubnetName')]",
-        "dbwinvmStorageAccountContainerName": "vhds",
-        "dbwinvmNicName": "[concat(parameters('dbwinvmName'), 'NetworkInterface')]"
-    }
+  "variables": {
+    "nsgdemostorageName": "[concat('nsgstg', uniqueString(resourceGroup().id))]",
+    "FENicVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "FENicSubnetRef": "[concat(variables('FENicVnetID'), '/subnets/', 'FESubnetName')]",
+    "AppNicVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "AppNicSubnetRef": "[concat(variables('AppNicVnetID'), '/subnets/', 'AppSubnetName')]",
+    "DBNicVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "DBNicSubnetRef": "[concat(variables('DBNicVnetID'), '/subnets/', 'DBSubnetName')]",
+    "FEWinVMImagePublisher": "MicrosoftWindowsServer",
+    "FEWinVMImageOffer": "WindowsServer",
+    "FEWinVMOSDiskName": "FEWinVMOSDisk",
+    "FEWinVMVmSize": "Standard_D1",
+    "FEWinVMVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "FEWinVMSubnetRef": "[concat(variables('FEWinVMVnetID'), '/subnets/', 'FESubnetName')]",
+    "FEWinVMStorageAccountContainerName": "vhds",
+    "FEPublicIPName": "FEPublicIP",
+    "AppPublicIPName": "AppPublicIP",
+    "DBPublicIPName": "DBPublicIP",
+    "fewinvmImagePublisher2": "MicrosoftWindowsServer",
+    "fewinvmImageOffer2": "WindowsServer",
+    "fewinvmOSDiskName2": "fewinvmOSDisk",
+    "fewinvmVmSize2": "Standard_D1",
+    "fewinvmVnetID2": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "fewinvmSubnetRef2": "[concat(variables('fewinvmVnetID2'), '/subnets/', 'FESubnetName')]",
+    "fewinvmStorageAccountContainerName2": "vhds",
+    "fewinvmNicName": "[concat(parameters('fewinvmName'), 'NetworkInterface')]",
+    "appwinvmImagePublisher": "MicrosoftWindowsServer",
+    "appwinvmImageOffer": "WindowsServer",
+    "appwinvmOSDiskName": "appwinvmOSDisk",
+    "appwinvmVmSize": "Standard_D1",
+    "appwinvmVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "appwinvmSubnetRef": "[concat(variables('appwinvmVnetID'), '/subnets/', 'AppSubnetName')]",
+    "appwinvmStorageAccountContainerName": "vhds",
+    "appwinvmNicName": "[concat(parameters('appwinvmName'), 'NetworkInterface')]",
+    "dbwinvmImagePublisher": "MicrosoftWindowsServer",
+    "dbwinvmImageOffer": "WindowsServer",
+    "dbwinvmOSDiskName": "dbwinvmOSDisk",
+    "dbwinvmVmSize": "Standard_D1",
+    "dbwinvmVnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+    "dbwinvmSubnetRef": "[concat(variables('dbwinvmVnetID'), '/subnets/', 'DBSubnetName')]",
+    "dbwinvmStorageAccountContainerName": "vhds",
+    "dbwinvmNicName": "[concat(parameters('dbwinvmName'), 'NetworkInterface')]"
+  }
 }

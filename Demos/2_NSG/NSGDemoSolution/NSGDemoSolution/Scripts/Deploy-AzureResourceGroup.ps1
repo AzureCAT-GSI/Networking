@@ -4,7 +4,7 @@
 
 Param(
     [string] [Parameter(Mandatory=$true)] $ResourceGroupLocation,
-    [string] $ResourceGroupName = 'NSGDemoSolution',
+    [string] $ResourceGroupName = 'TM-Demo-Solution',
     [switch] $UploadArtifacts,
     [string] $StorageAccountName,
     [string] $StorageAccountResourceGroupName, 
