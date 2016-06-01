@@ -1,0 +1,412 @@
+﻿{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "_artifactsLocation": {
+            "type": "string"
+        },
+        "_artifactsLocationSasToken": {
+            "type": "securestring"
+        },
+        "WebDeploy-PackageFolder": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "WebDeploy package location. This path is relative to the _artifactsLocation parameter"
+            }
+        },
+        "WebDeploy-PackageFileName": {
+            "type": "string",
+            "minLength": 1,
+            "metadata": {
+                "description": "Name of the webdeploy package"
+            }
+        }
+        
+    },
+  "variables": {
+    "AppServicePlan-WestName": "AppServicePlan-West-S1",
+    "AppServicePlan-EastName": "AppServicePlan-East-S1",
+    "WebApp-WestName": "[concat('WebApp-West-', uniqueString(resourceGroup().id))]",
+    "WebApp-EastName": "[concat('WebApp-East-', uniqueString(resourceGroup().id))]",
+    "App-Service-Plan-WorkerSize": "0",
+    "App-Service-Plan-SKU": "Standard",
+
+    "vmstorageType": "Standard_LRS",
+    "VNETPrefix": "10.0.0.0/16",
+    "VNETSubnet1Name": "Subnet-1",
+    "VNETSubnet1Prefix": "10.0.0.0/24",
+    "VNETSubnet2Name": "Subnet-2",
+    "VNETSubnet2Prefix": "10.0.1.0/24",
+    "vmstorageName": "[concat('vmstorage', uniqueString(resourceGroup().id))]",
+
+    "VMClient-AdminUserName": "adminuser",
+    "VMClient-AdminPassword": "P@ssword1",
+
+    "VMClient-WindowsOSVersion": "2012-R2-Datacenter",
+
+    "VMClient-1Name": "vm-1",
+    "VMClient-1PublicIPDnsName": "[concat(variables('VMClient-1Name'), '-', uniqueString(resourceGroup().id))]",
+    "VMClient-1ImagePublisher": "MicrosoftWindowsServer",
+    "VMClient-1ImageOffer": "WindowsServer",
+    "VMClient-1OSDiskName": "VMClient-1OSDisk",
+    "VMClient-1VmSize": "Standard_D1",
+    "VMClient-1VnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'VNET')]",
+    "VMClient-1SubnetRef": "[concat(variables('VMClient-1VnetID'), '/subnets/', variables('VNETSubnet1Name'))]",
+    "VMClient-1StorageAccountContainerName": "vhds",
+    "VMClient-1NicName": "[concat(variables('VMClient-1Name'), 'NetworkInterface')]",
+    "VMClient-2ImagePublisher": "MicrosoftWindowsServer",
+
+    "VMClient-2Name": "vm-2",
+    "VMClient-2PublicIPDnsName": "[concat(variables('VMClient-2Name'), '-', uniqueString(resourceGroup().id))]",
+    "VMClient-2ImageOffer": "WindowsServer",
+    "VMClient-2OSDiskName": "VMClient-2OSDisk",
+    "VMClient-2VmSize": "Standard_D1",
+    "VMClient-2VnetID": "[resourceId('Microsoft.Network/virtualNetworks', 'VNET')]",
+    "VMClient-2SubnetRef": "[concat(variables('VMClient-2VnetID'), '/subnets/', variables('VNETSubnet1Name'))]",
+    "VMClient-2StorageAccountContainerName": "vhds",
+    "VMClient-2NicName": "[concat(variables('VMClient-2Name'), 'NetworkInterface')]",
+    "VMClient-1PublicIPName": "VMClient-1PublicIP",
+    "VMClient-2PublicIPName": "VMClient-2PublicIP"
+  },
+    "resources": [
+      {
+        "name": "[variables('AppServicePlan-WestName')]",
+        "type": "Microsoft.Web/serverfarms",
+        "location": "West US",
+        "apiVersion": "2014-06-01",
+        "dependsOn": [ ],
+        "tags": {
+          "displayName": "App-Service-Plan-West-S1"
+        },
+        "properties": {
+          "name": "[variables('AppServicePlan-WestName')]",
+          "sku": "[variables('App-Service-Plan-SKU')]",
+          "workerSize": "[variables('App-Service-Plan-WorkerSize')]",
+          "numberOfWorkers": 1
+        }
+      },
+        {
+            "name": "[variables('WebApp-WestName')]",
+            "type": "Microsoft.Web/sites",
+            "location": "West US",
+            "apiVersion": "2015-08-01",
+          "dependsOn": [
+            "[concat('Microsoft.Web/serverfarms/', variables('AppServicePlan-WestName'))]"
+          ],
+          "tags": {
+            "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', variables('AppServicePlan-WestName'))]": "Resource",
+            "displayName": "WebApp-West"
+          },
+          "properties": {
+            "name": "[variables('WebApp-WestName')]",
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms/', variables('AppServicePlan-WestName'))]"
+          },
+            "resources": [
+                {
+                    "name": "MSDeploy",
+                    "type": "extensions",
+                    "location": "West US",
+                    "apiVersion": "2015-08-01",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', variables('WebApp-WestName'))]"
+                    ],
+                    "tags": {
+                        "displayName": "WebDeploy-West"
+                    },
+                    "properties": {
+                        "packageUri": "[concat(parameters('_artifactsLocation'), '/', parameters('WebDeploy-PackageFolder'), '/', parameters('WebDeploy-PackageFileName'), parameters('_artifactsLocationSasToken'))]",
+                        "dbType": "None",
+                        "connectionString": "",
+                        "setParameters": {
+                            "IIS Web Application Name": "[variables('WebApp-WestName')]"
+                        }
+                    }
+                }
+            ]
+        },
+      {
+        "name": "[variables('AppServicePlan-EastName')]",
+        "type": "Microsoft.Web/serverfarms",
+        "location": "East US",
+        "apiVersion": "2014-06-01",
+        "dependsOn": [ ],
+        "tags": {
+          "displayName": "App-Service-Plan-East-S1"
+        },
+        "properties": {
+          "name": "[variables('AppServicePlan-EastName')]",
+          "sku": "[variables('App-Service-Plan-SKU')]",
+          "workerSize": "[variables('App-Service-Plan-WorkerSize')]",
+          "numberOfWorkers": 1
+        }
+      },
+        {
+            "name": "[variables('WebApp-EastName')]",
+            "type": "Microsoft.Web/sites",
+            "location": "East US",
+            "apiVersion": "2015-08-01",
+          "dependsOn": [
+            "[concat('Microsoft.Web/serverfarms/', variables('AppServicePlan-EastName'))]"
+          ],
+          "tags": {
+            "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', variables('AppServicePlan-EastName'))]": "Resource",
+            "displayName": "WebApp-East"
+          },
+          "properties": {
+            "name": "[variables('WebApp-EastName')]",
+            "serverFarmId": "[resourceId('Microsoft.Web/serverfarms/', variables('AppServicePlan-EastName'))]"
+          },
+            "resources": [
+                {
+                    "name": "MSDeploy",
+                    "type": "extensions",
+                    "location": "East US",
+                    "apiVersion": "2015-08-01",
+                    "dependsOn": [
+                        "[concat('Microsoft.Web/sites/', variables('WebApp-EastName'))]"
+                    ],
+                    "tags": {
+                        "displayName": "WebDeploy-East"
+                    },
+                    "properties": {
+                        "packageUri": "[concat(parameters('_artifactsLocation'), '/', parameters('WebDeploy-PackageFolder'), '/', parameters('WebDeploy-PackageFileName'), parameters('_artifactsLocationSasToken'))]",
+                        "dbType": "None",
+                        "connectionString": "",
+                        "setParameters": {
+                            "IIS Web Application Name": "[variables('WebApp-EastName')]"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "VNET",
+            "type": "Microsoft.Network/virtualNetworks",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-05-01-preview",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "VNET"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[variables('VNETPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('VNETSubnet1Name')]",
+                        "properties": {
+                            "addressPrefix": "[variables('VNETSubnet1Prefix')]"
+                        }
+                    },
+                    {
+                        "name": "[variables('VNETSubnet2Name')]",
+                        "properties": {
+                            "addressPrefix": "[variables('VNETSubnet2Prefix')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('vmstorageName')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "vmstorage"
+            },
+            "properties": {
+                "accountType": "[variables('vmstorageType')]"
+            }
+        },
+        {
+            "name": "[variables('VMClient-1NicName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-05-01-preview",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', 'VNET')]",
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('VMClient-1PublicIPName'))]"
+            ],
+            "tags": {
+                "displayName": "VMClient-1Nic"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('VMClient-1SubnetRef')]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('VMClient-1PublicIPName'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('VMClient-1Name')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-05-01-preview",
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', variables('vmstorageName'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('VMClient-1NicName'))]"
+            ],
+            "tags": {
+                "displayName": "VMClient-1"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('VMClient-1VmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[variables('VMClient-1Name')]",
+                    "adminUsername": "[variables('VMClient-AdminUsername')]",
+                    "adminPassword": "[variables('VMClient-AdminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('VMClient-1ImagePublisher')]",
+                        "offer": "[variables('VMClient-1ImageOffer')]",
+                        "sku": "[variables('VMClient-WindowsOSVersion')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "VMClient-1OSDisk",
+                        "vhd": {
+                            "uri": "[concat('http://', variables('vmstorageName'), '.blob.core.windows.net/', variables('VMClient-1StorageAccountContainerName'), '/', variables('VMClient-1OSDiskName'), '.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('VMClient-1NicName'))]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('VMClient-2NicName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-05-01-preview",
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', 'VNET')]",
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('VMClient-2PublicIPName'))]"
+            ],
+            "tags": {
+                "displayName": "VMClient-2Nic"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('VMClient-2SubnetRef')]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('VMClient-2PublicIPName'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('VMClient-2Name')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-05-01-preview",
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', variables('vmstorageName'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('VMClient-2NicName'))]"
+            ],
+            "tags": {
+                "displayName": "VMClient-2"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[variables('VMClient-2VmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[variables('VMClient-2Name')]",
+                    "adminUsername": "[variables('VMClient-AdminUsername')]",
+                    "adminPassword": "[variables('VMClient-AdminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('VMClient-2ImagePublisher')]",
+                        "offer": "[variables('VMClient-2ImageOffer')]",
+                        "sku": "[variables('VMClient-WindowsOSVersion')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "VMClient-2OSDisk",
+                        "vhd": {
+                            "uri": "[concat('http://', variables('vmstorageName'), '.blob.core.windows.net/', variables('VMClient-2StorageAccountContainerName'), '/', variables('VMClient-2OSDiskName'), '.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('VMClient-2NicName'))]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "[variables('VMClient-1PublicIPName')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-05-01-preview",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "VMClient-1PublicIP"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "dnsSettings": {
+                    "domainNameLabel": "[variables('VMClient-1PublicIPDnsName')]"
+                }
+            }
+        },
+        {
+            "name": "[variables('VMClient-2PublicIPName')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "location": "[resourceGroup().location]",
+            "apiVersion": "2015-05-01-preview",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "VMClient-2PublicIP"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "dnsSettings": {
+                    "domainNameLabel": "[variables('VMClient-2PublicIPDnsName')]"
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+}
