@@ -1,0 +1,617 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "adminUsername": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Username to sign-in to virtual machines."
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password to sign-in to virtual machines."
+      }
+    },
+      "_artifactsLocation": {
+          "type": "string",
+          "metadata": {
+              "description": "Auto-generated container in staging storage account to receive post-build staging folder upload"
+          }
+      },
+      "_artifactsLocationSasToken": {
+          "type": "securestring",
+          "metadata": {
+              "description": "Auto-generated token to access _artifactsLocation"
+          }
+      }
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('feNSGName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "rdp_rule",
+            "properties": {
+              "description": "Allow RDP",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "web_rule",
+            "properties": {
+              "description": "Allow WEB",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "80",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('appNSGName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow_FE",
+            "properties": {
+              "description": "Allow FE Subnet",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "443",
+              "sourceAddressPrefix": "10.0.0.0/24",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Block_RDP_Internet",
+            "properties": {
+              "description": "Block RDP",
+              "protocol": "tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "Internet",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 101,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Block_Internet_Outbound",
+            "properties": {
+              "description": "Block Internet",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "Internet",
+              "access": "Deny",
+              "priority": 200,
+              "direction": "Outbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('DBNSGName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow_App",
+            "properties": {
+              "description": "Allow APP Subnet",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "1433",
+              "sourceAddressPrefix": "10.0.1.0/24",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 100,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "rdp_rule",
+            "properties": {
+              "description": "Allow RDP",
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "3389",
+              "sourceAddressPrefix": "[variables('FESubnetPrefix')]",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 101,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Block_App",
+            "properties": {
+              "description": "Block App Subnet",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "10.0.1.0/24",
+              "destinationAddressPrefix": "*",
+              "access": "Deny",
+              "priority": 102,
+              "direction": "Inbound"
+            }
+          },
+          {
+            "name": "Block_Internet",
+            "properties": {
+              "description": "Block Internet",
+              "protocol": "*",
+              "sourcePortRange": "*",
+              "destinationPortRange": "*",
+              "sourceAddressPrefix": "*",
+              "destinationAddressPrefix": "Internet",
+              "access": "Deny",
+              "priority": 200,
+              "direction": "Outbound"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('virtualNetworkName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('feNSGName'))]",
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('appNSGName'))]",
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('dbNSGName'))]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('addressPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "FESubnetName",
+            "properties": {
+              "addressPrefix": "[variables('FESubnetPrefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('feNSGName'))]"
+              }
+            }
+          },
+          {
+            "name": "AppSubnetName",
+            "properties": {
+              "addressPrefix": "[variables('AppSubnetPrefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('appNSGName'))]"
+              }
+            }
+          },
+          {
+            "name": "DBSubnetName",
+            "properties": {
+              "addressPrefix": "[variables('DBSubnetPrefix')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('dbNSGName'))]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('storageName')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-05-01-preview",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "nsgdemostorage"
+      },
+      "properties": {
+        "accountType": "[variables('storageType')]"
+      }
+    },
+    {
+      "name": "[variables('FEPublicIPName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-05-01-preview",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "FEPublicIP"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[variables('feVmPIPDnsName')]"
+        }
+      }
+    },
+    {
+      "name": "[variables('AppPublicIPName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-05-01-preview",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "AppPublicIP"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[variables('appVmPIPDnsName')]"
+        }
+      }
+    },
+    {
+      "name": "[variables('DBPublicIPName')]",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-05-01-preview",
+      "dependsOn": [ ],
+      "tags": {
+        "displayName": "DBPublicIP"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[variables('dbVmPIPDnsName')]"
+        }
+      }
+    },
+    {
+      "name": "[variables('fewinvmNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-05-01-preview",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('FEPublicIPName'))]",
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+      ],
+      "tags": {
+        "displayName": "fewinvmNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('FEPublicIPName'))]"
+              },
+              "subnet": {
+                "id": "[variables('fewinvmSubnetRef2')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('feVmName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-05-01-preview",
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('storageName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('fewinvmNicName'))]"
+      ],
+      "tags": {
+        "displayName": "fewinvm"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('feVmName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('vmImagePublisher')]",
+            "offer": "[variables('vmImageOffer')]",
+            "sku": "[variables('vmWindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "fewinvmOSDisk",
+            "vhd": {
+              "uri": "[concat('http://', variables('storageName'), '.blob.core.windows.net/', variables('fewinvmStorageAccountContainerName2'), '/', variables('fewinvmOSDiskName2'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('fewinvmNicName'))]"
+            }
+          ]
+        }
+      },
+        "resources": [
+            {
+                "name": "fe-dsc-ext",
+                "type": "extensions",
+                "location": "[resourceGroup().location]",
+                "apiVersion": "2015-06-15",
+                "dependsOn": [
+                    "[concat('Microsoft.Compute/virtualMachines/', variables('feVmName'))]"
+                ],
+                "tags": {
+                    "displayName": "fe-dsc-ext"
+                },
+                "properties": {
+                    "publisher": "Microsoft.Powershell",
+                    "type": "DSC",
+                    "typeHandlerVersion": "2.9",
+                    "autoUpgradeMinorVersion": true,
+                    "settings": {
+                        "modulesUrl": "[concat(parameters('_artifactsLocation'), '/', 'dsc.zip')]",
+                        "sasToken": "[parameters('_artifactsLocationSasToken')]",
+                        "configurationFunction": "[variables('fe-dsc-extConfigurationFunction')]",
+                        "properties": {
+                            "nodeName": "[variables('feVmName')]"
+                        }
+                    },
+                    "protectedSettings": { }
+                }
+            }
+        ]
+    },
+    {
+      "name": "[variables('appwinvmNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-05-01-preview",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('AppPublicIPName'))]",
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+      ],
+      "tags": {
+        "displayName": "appwinvmNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('AppPublicIPName'))]"
+              },
+              "subnet": {
+                "id": "[variables('appwinvmSubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('appVmName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-05-01-preview",
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('storageName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('appwinvmNicName'))]"
+      ],
+      "tags": {
+        "displayName": "appwinvm"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('appVmName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('vmImagePublisher')]",
+            "offer": "[variables('vmImageOffer')]",
+            "sku": "[variables('vmWindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "appwinvmOSDisk",
+            "vhd": {
+              "uri": "[concat('http://', variables('storageName'), '.blob.core.windows.net/', variables('appwinvmStorageAccountContainerName'), '/', variables('appwinvmOSDiskName'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('appwinvmNicName'))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[variables('dbwinvmNicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-05-01-preview",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/', variables('DBPublicIPName'))]",
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+      ],
+      "tags": {
+        "displayName": "dbwinvmNic"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('DBPublicIPName'))]"
+              },
+              "subnet": {
+                "id": "[variables('dbwinvmSubnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[variables('dbVmName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2015-05-01-preview",
+      "dependsOn": [
+        "[concat('Microsoft.Storage/storageAccounts/', variables('storageName'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('dbwinvmNicName'))]"
+      ],
+      "tags": {
+        "displayName": "dbwinvm"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[variables('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('dbVmName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[variables('vmImagePublisher')]",
+            "offer": "[variables('vmImageOffer')]",
+            "sku": "[variables('vmWindowsOSVersion')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "dbwinvmOSDisk",
+            "vhd": {
+              "uri": "[concat('http://', variables('storageName'), '.blob.core.windows.net/', variables('dbwinvmStorageAccountContainerName'), '/', variables('dbwinvmOSDiskName'), '.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('dbwinvmNicName'))]"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "variables": {
+    // Virtual Network Settings
+    "virtualNetworkName": "vnet",
+    "addressPrefix": "10.0.0.0/16",
+    "FESubnetPrefix": "10.0.0.0/24",
+    "AppSubnetPrefix": "10.0.1.0/24",
+    "DBSubnetPrefix": "10.0.2.0/24",
+
+    // Storage Settings
+    "storageType": "Standard_LRS",
+    "storageName": "[concat('stg', uniqueString(resourceGroup().id))]",
+
+    // Virtual Machine Settings
+    "vmWindowsOSVersion": "2012-R2-Datacenter",
+    "vmSize": "Standard_D1",
+    "vmImagePublisher": "MicrosoftWindowsServer",
+    "vmImageOffer": "WindowsServer",
+
+    "feVmName": "fe-vm",
+    "appVmName": "app-vm",
+    "dbVmName": "db-vm",
+
+    // Public IP Settings
+    "feVmPIPDnsName": "[concat('fe-vm-pip-', uniqueString(resourceGroup().id))]",
+    "appVmPIPDnsName": "[concat('app-vm-pip-', uniqueString(resourceGroup().id))]",
+    "dbVmPIPDnsName": "[concat('db-vm-pip-', uniqueString(resourceGroup().id))]",
+
+    // NIC Settings
+    "fewinvmNicName": "[concat(variables('feVmName'), '-nic')]",
+    "appwinvmNicName": "[concat(variables('appVmName'), '-nic')]",
+    "dbwinvmNicName": "[concat(variables('dbVmName'), '-nic')]",
+
+    // NSG Settings
+    "feNSGName": "fe-nsg",
+    "appNSGName": "app-nsg",
+    "dbNSGName": "db-nsg",
+
+    "FENicVnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+    "FENicSubnetRef": "[concat(variables('FENicVnetID'), '/subnets/', 'FESubnetName')]",
+    "AppNicVnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+    "AppNicSubnetRef": "[concat(variables('AppNicVnetID'), '/subnets/', 'AppSubnetName')]",
+    "DBNicVnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+    "DBNicSubnetRef": "[concat(variables('DBNicVnetID'), '/subnets/', 'DBSubnetName')]",
+    "FEWinVMImagePublisher": "MicrosoftWindowsServer",
+    "FEWinVMImageOffer": "WindowsServer",
+    "FEWinVMOSDiskName": "FEWinVMOSDisk",
+    "FEWinVMVnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+    "FEWinVMSubnetRef": "[concat(variables('FEWinVMVnetID'), '/subnets/', 'FESubnetName')]",
+    "FEWinVMStorageAccountContainerName": "vhds",
+    "FEPublicIPName": "FEPublicIP",
+    "AppPublicIPName": "AppPublicIP",
+    "DBPublicIPName": "DBPublicIP",
+    "fewinvmOSDiskName2": "fewinvmOSDisk",
+    "fewinvmVnetID2": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+    "fewinvmSubnetRef2": "[concat(variables('fewinvmVnetID2'), '/subnets/', 'FESubnetName')]",
+    "fewinvmStorageAccountContainerName2": "vhds",
+    "appwinvmOSDiskName": "appwinvmOSDisk",
+    "appwinvmVnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+    "appwinvmSubnetRef": "[concat(variables('appwinvmVnetID'), '/subnets/', 'AppSubnetName')]",
+    "appwinvmStorageAccountContainerName": "vhds",
+    "dbwinvmOSDiskName": "dbwinvmOSDisk",
+    "dbwinvmVnetID": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+    "dbwinvmSubnetRef": "[concat(variables('dbwinvmVnetID'), '/subnets/', 'DBSubnetName')]",
+    "dbwinvmStorageAccountContainerName": "vhds",
+      "fe-dsc-extConfigurationFunction": "fe-dsc-extConfiguration.ps1\\Main"
+  }
+}
