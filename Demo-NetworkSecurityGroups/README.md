@@ -39,7 +39,8 @@ _Estimated Time: 10 minutes_
 
     b. Unzip **PSTools.zip**.
 
-Note: Keep your RDP session to this virtual machine open. You will come back to it in the demo.
+_Note: Keep your RDP session to this virtual machine open. You will come back to it in the demo._
+
 ##Demo Steps
 _Estimated Time: 5 minutes_
 
@@ -71,7 +72,7 @@ _Estimated Time: 5 minutes_
 
 7. Open a command prompt (as Administrator) and change directory to **C:\Install\PSTools**. 
 
-    a.  Execute the following command: **psping -t &lt;&lt;db-vm public ip address&gt;&gt;:&lt;&lt;Port Number&gt;&gt;**
+    a.  Execute the following command: **psping -t <db-vm public ip address>:3389**
 
     b. You will get a response from the server as shown here.
 
