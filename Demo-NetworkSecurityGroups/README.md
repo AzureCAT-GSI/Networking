@@ -93,6 +93,7 @@ _Estimated Time: 5 minutes_
 11. Notice the psping is timing out in the response. _Note: It may take a few seconds for the rule change to take effect._
 
     <img src="./media/demo-05.png" style="max-width: 500px" />
+
 ##Cleanup
 _Estimated Time: 5 minutes_
 
