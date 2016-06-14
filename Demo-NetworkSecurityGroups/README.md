@@ -72,7 +72,7 @@ _Estimated Time: 5 minutes_
 
 7. Open a command prompt (as Administrator) and change directory to **C:\Install\PSTools**. 
 
-    a.  Execute the following command: **psping -t <db-vm public ip address>:3389**
+    a.  Execute the following command: **psping -t [db-vm public ip address]:3389**
 
     b. You will get a response from the server as shown here.
 
