@@ -81,7 +81,7 @@ Demo Steps
 
 1.  Explain NSG security rule configuration details.
 
-> <img src="./media/setup-05.PNG" width="290" height="639" />
+> <img src="./media/setup-05.PNG" width="639" height="290" />
 
 1.  Open the RDP connection to **fe-vm**.
 
