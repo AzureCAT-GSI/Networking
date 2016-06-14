@@ -29,17 +29,17 @@ Setup
 
 2.  Right-click on **Deploy-Demo.ps1** and select **Run with PowerShell**. *Note: You can run the script from the PowerShell ISE if you prefer. Either way will work the same.*
 
-> <img src="./media/image1.PNG" width="624" height="253" />
+> <img src="./media/setup-01.PNG" width="624" height="253" />
 
 1.  The script requires one parameter, your Azure Subscription ID, which you can get from the Subscriptions blade in the Azure portal. Paste your Subscription ID (without quotes) when prompted and press **ENTER**.
 
-> <img src="./media/image2.png" width="556" height="130" />
+> <img src="./media/setup-02.png" width="556" height="130" />
 
 1.  Authenticate to your Azure subscription using your Azure credentials.
 
 2.  When prompted to, enter an admin username and password. These are the credentials you will use to sign-in to the virtual machines that are provisioned by the ARM template.
 
-> <img src="./media/image3.png" width="455" height="211" />
+> <img src="./media/setup-03.png" width="455" height="211" />
 >
 > Wait for the deployment to finish before proceeding to the next step.
 
@@ -76,13 +76,12 @@ Demo Steps
 
 1.  Open the **NSG** blade and show that the “dbnsg” has an Inbound and Outbound rules.
 
-> <img src="./media/image4.PNG" width="586" height="283" />
+> <img src="./media/setup-04.PNG" width="586" height="283" />
 >
-> <img src="./media/image5.PNG" width="561" height="247" />
 
 1.  Explain NSG security rule configuration details.
 
-> <img src="./media/image6.PNG" width="290" height="639" />
+> <img src="./media/setup-05.PNG" width="290" height="639" />
 
 1.  Open the RDP connection to **fe-vm**.
 
@@ -94,7 +93,7 @@ Demo Steps
 
 1.  You will get the response from the server.
 
-    <img src="./media/image7.png" width="624" height="221" />
+    <img src="./media/setup-07.png" width="624" height="221" />
 
 <!-- -->
 
@@ -102,11 +101,11 @@ Demo Steps
 
 2.  Select the rule and change the Action to the “Deny” from “Allow”.
 
-> <img src="./media/image8.PNG" width="298" height="646" />
+> <img src="./media/setup-06.PNG" width="298" height="646" />
 
 1.  After denying incoming traffic on port 3389 on db server, you will receive time out response. **(note: wait for a minute to rule to take effect)**
 
-> <img src="./media/image9.png" width="624" height="181" />
+> <img src="./media/setup-08.png" width="624" height="181" />
 
 Cleanup
 -------
