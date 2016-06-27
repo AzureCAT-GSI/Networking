@@ -12,7 +12,7 @@ The PowerPoint includes full speaker notes helping you understand the slides, an
 
 * Traffic Manager
 [[Demo script & source code](./Demo-TrafficManager/)]
-[[demo video](https://gsiazurecoecontent.blob.core.windows.net/networking/0_Traffic_Manager.mp4)]
+[[demo video](https://gsiazurecoecontent.blob.core.windows.net/networking/TrafficManager.mp4)]
 
 * User Defined Routes
 [[Demo script & source code](./Demo-UserDefinedRoutes)]
@@ -25,11 +25,11 @@ The PowerPoint includes full speaker notes helping you understand the slides, an
 
 ## Session objectives
 
-- Todo
-- Todo
-- Todo
-- Todo
-
+* Understand Hybrid-Networking options
+* Understand how to configure Traffic Manager
+* Understand how to configure user defined routes
+* Understand how to configure network security groups
+* Understand when to use Application Gateway
 
 ## Session Prerequisits
 
