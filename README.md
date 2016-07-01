@@ -21,7 +21,7 @@ The PowerPoint includes full speaker notes helping you understand the slides, an
 
 * Network Security Groups
 [[Demo script & source code](./Demo-NetworkSecurityGroups/)]
-[[demo video](#)]
+[[demo video](https://gsiazurecoecontent.blob.core.windows.net/networking/NSG.mp4)]
 
 ## Session objectives
 
