@@ -12,16 +12,16 @@ The PowerPoint includes full speaker notes helping you understand the slides, an
 
 * Traffic Manager
 [[Demo script & source code](./Demo-TrafficManager/)]
-[[demo video](https://gsiazurecoecontent.blob.core.windows.net/networking/TrafficManager.mp4)]
+[[demo video](https://azurecatgsicontent.blob.core.windows.net/networking/TrafficManager.mp4)]
 
 * User Defined Routes
 [[Demo script & source code](./Demo-UserDefinedRoutes)]
-[[setup video](https://gsiazurecoecontent.blob.core.windows.net/networking/Networking-UDR-Demo-Setup.mp4)]
-[[demo video](https://gsiazurecoecontent.blob.core.windows.net/networking/Networking-UDR-Demo.mp4)]
+[[setup video](https://azurecatgsicontent.blob.core.windows.net/networking/Networking-UDR-Demo-Setup.mp4)]
+[[demo video](https://azurecatgsicontent.blob.core.windows.net/networking/Networking-UDR-Demo.mp4)]
 
 * Network Security Groups
 [[Demo script & source code](./Demo-NetworkSecurityGroups/)]
-[[demo video](https://gsiazurecoecontent.blob.core.windows.net/networking/NSG.mp4)]
+[[demo video](https://azurecatgsicontent.blob.core.windows.net/networking/NSG.mp4)]
 
 ## Session objectives
 
